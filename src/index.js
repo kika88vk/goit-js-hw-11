@@ -1,6 +1,6 @@
 import Notiflix from 'notiflix';
 import "notiflix/dist/notiflix-3.2.6.min.css";
-import SimpleLightbox from 'simple-lightbox.min.js';
+import SimpleLightbox from "simplelightbox";
 
 
 // Notiflix.Notify.success(`✅ Fulfilled promise ${position} in ${delay}ms`);
