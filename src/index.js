@@ -2,42 +2,60 @@ import Notiflix from 'notiflix';
 import "notiflix/dist/notiflix-3.2.6.min.css";
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css"
-
 import { fetchGetImage } from './pic-api';
 
 const searchForm = document.querySelector('#search-form');
 const gallery = document.querySelector('.gallery');
 
 // fetchGetImage('blue flowers').then(resp => console.log(resp.data.hits[0].webformatURL))
-// fetchGetImage('sky').then(resp => {
-//     let arr = resp.data.hits;
-//     console.log(arr)
-// }).catch((error) => console.log(error))
+fetchGetImage('sky').then(({ hits, totalHits }) => {
+    console.log({ hits, totalHits });
+    // console.log(totalHits);
+}).catch((error) => console.log(error))
 
 
 
 searchForm.addEventListener("submit", getWordFromForm);
 
+
+let lightbox = new SimpleLightbox('.gallery a', {
+    captionsData: "alt",
+    captionDelay: 250,
+});
+
+
 function getWordFromForm(event) {
     gallery.innerHTML = "";
     event.preventDefault();
     const { elements: { searchQuery } } = event.currentTarget;
-    let searchWord = searchQuery.value;
+    let searchWord = searchQuery.value.trim();
+
+    if (!searchWord) {
+        Notiflix.Notify.warning('Input is empty! Write a search word please!');
+        return;
+    }
+
 
     console.log(searchWord)
 
 
-    fetchGetImage(searchWord).then((resp) => {
-        renderImages(resp);
-        Notiflix.Notify.success(`✅Hooray! We found ${resp.data.totalHits} images.`);
+    fetchGetImage(searchWord).then(({ hits, totalHits }) => {
+        renderImages(hits);
+        lightbox.refresh();
+        if (totalHits > 0) {
+            Notiflix.Notify.success(`✅Hooray! We found ${totalHits} images.`);
+        }
+
     }).catch((error) => console.log(error));
     event.currentTarget.reset();
 }
 
 
-function renderImages(resp) {
-    let hitsArray = resp.data.hits;
-    const markup = hitsArray.map(img => {
+
+
+function renderImages(hits) {
+
+    const markup = hits.map(img =>
         `<a href="${img.largeImageURL}">
         <div class="photo-card">
         <img src="${img.webformatURL}" alt="${img.tags}" loading="lazy" />
@@ -56,14 +74,8 @@ function renderImages(resp) {
             </p>
         </div>
         </div>
-    </a>`;
-    }).join("");
-    gallery.innerHTML += markup;
-
-    let lightbox = new SimpleLightbox('.gallery a', {
-        captionsData: "alt",
-        captionDelay: 250,
-    });
+    </a>`).join("");
+    gallery.insertAdjacentHTML('beforeend', markup);
 }
 
 
