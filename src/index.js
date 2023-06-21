@@ -3,27 +3,67 @@ import "notiflix/dist/notiflix-3.2.6.min.css";
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css"
 
+import { fetchGetImage } from './pic-api';
 
 const searchForm = document.querySelector('#search-form');
-const galleryEl = document.querySelector('.gallery');
+const gallery = document.querySelector('.gallery');
 
-const axios = require('axios');
+// fetchGetImage('blue flowers').then(resp => console.log(resp.data.hits[0].webformatURL))
+// fetchGetImage('sky').then(resp => {
+//     let arr = resp.data.hits;
+//     console.log(arr)
+// }).catch((error) => console.log(error))
 
 
-async function fetchGetImage() {
-    const apiKey = "37262675-c60479e6538b2ce74a07e98ab";
-    try {
-        const response = await axios.get('https://pixabay.com/api/', {
-            params: {
-                apiKey
-                // ID: 12345
 
-            }
-        });
-        console.log(response);
-    } catch (error) {
-        console.error(error);
-    }
+searchForm.addEventListener("submit", getWordFromForm);
+
+function getWordFromForm(event) {
+    gallery.innerHTML = "";
+    event.preventDefault();
+    const { elements: { searchQuery } } = event.currentTarget;
+    let searchWord = searchQuery.value;
+
+    console.log(searchWord)
+
+
+    fetchGetImage(searchWord).then((resp) => {
+        renderImages(resp);
+        Notiflix.Notify.success(`✅Hooray! We found ${resp.data.totalHits} images.`);
+    }).catch((error) => console.log(error));
+    event.currentTarget.reset();
+}
+
+
+function renderImages(resp) {
+    let hitsArray = resp.data.hits;
+    const markup = hitsArray.map(img => {
+        `<a href="${img.largeImageURL}">
+        <div class="photo-card">
+        <img src="${img.webformatURL}" alt="${img.tags}" loading="lazy" />
+        <div class="info">
+            <p class="info-item">
+            <b>Likes ${img.likes}</b>
+            </p>
+            <p class="info-item">
+            <b>Views ${img.views}</b>
+            </p>
+            <p class="info-item">
+            <b>Comments ${img.comments}</b>
+            </p>
+            <p class="info-item">
+            <b>Downloads ${img.downloads}</b>
+            </p>
+        </div>
+        </div>
+    </a>`;
+    }).join("");
+    gallery.innerHTML += markup;
+
+    let lightbox = new SimpleLightbox('.gallery a', {
+        captionsData: "alt",
+        captionDelay: 250,
+    });
 }
 
 
