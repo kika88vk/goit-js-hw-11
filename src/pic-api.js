@@ -20,9 +20,7 @@ export async function fetchGetImage(searchWord) {
             },
 
         });
-        if (data.total === 0) {
-            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
-        }
+
         return data;
 
     } catch (error) {
