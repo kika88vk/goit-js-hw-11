@@ -8,13 +8,10 @@ const searchForm = document.querySelector('#search-form');
 const gallery = document.querySelector('.gallery');
 const loadBtn = document.querySelector('.load-more');
 
+let page = 1;
+
 loadBtn.style.display = 'none';
 
-fetchGetImage('blue flowers').then(resp => console.log(resp))
-fetchGetImage('sky').then(({ hits, totalHits }) => {
-    console.log({ hits, totalHits });
-    // console.log(totalHits);
-}).catch((error) => console.log(error))
 
 
 
@@ -31,8 +28,12 @@ let lightbox = new SimpleLightbox('.gallery a', {
 
 
 function getWordFromForm(event) {
-    gallery.innerHTML = "";
     event.preventDefault();
+    loadBtn.style.display = 'none';
+    gallery.innerHTML = "";
+    page = 1;
+    checkTotalHits();
+
     const { elements: { searchQuery } } = event.currentTarget;
     let searchWord = searchQuery.value.trim();
 
@@ -41,43 +42,62 @@ function getWordFromForm(event) {
         return;
     }
 
-    getImages(searchWord);
+    getImages(searchWord, page);
 
     loadBtn.style.display = 'block';
-
-    event.currentTarget.reset();
 }
 
 
-function onClickLoadMore(searchWord) {
-    getImages(searchWord);
+
+function onClickLoadMore() {
+    let searchWord = searchForm.elements.searchQuery.value.trim();
     page += 1;
+
+    getImages(searchWord, page);
+
+    if (page === 14) {
+        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+        loadBtn.style.display = 'none';
+    }
 }
 
 
 
-function getImages(searchWord) {
-    fetchGetImage(searchWord).then(({ hits, totalHits }) => {
-        renderImages(hits);
-        lightbox.refresh();
+async function checkTotalHits() {
+    try {
+        let { totalHits } = await fetchGetImage();
         if (totalHits > 0) {
             Notiflix.Notify.success(`✅Hooray! We found ${totalHits} images.`);
-        } if (totalHits === 0) {
-            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
-        } if (totalHits > 500) {
-            Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
         }
-
-    }).catch((error) => console.log(error));
+    } catch (error) {
+        console.log(error);
+    }
 }
+
+
+async function getImages(searchWord, page) {
+    try {
+        let { hits, totalHits } = await fetchGetImage(searchWord, page);
+        renderImages(hits);
+        lightbox.refresh();
+
+        if (totalHits === 0) {
+            Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
+            loadBtn.style.display = 'none';
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
 
 
 
 function renderImages(hits) {
 
     const markup = hits.map(img =>
-        `<a href="${img.largeImageURL}">
-        <div class="photo-card">
+        `<div class="photo-card">
+        <a href="${img.largeImageURL}" class="card-a">
         <img src="${img.webformatURL}" alt="${img.tags}" loading="lazy" />
         <div class="info">
             <p class="info-item">
@@ -93,8 +113,9 @@ function renderImages(hits) {
             <b>Downloads ${img.downloads}</b>
             </p>
         </div>
+        </a>
         </div>
-    </a>`).join("");
+    `).join("");
     gallery.insertAdjacentHTML('beforeend', markup);
 }
 
