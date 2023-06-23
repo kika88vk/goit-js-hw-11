@@ -41,11 +41,12 @@ function getWordFromForm(event) {
         Notiflix.Notify.warning('Input is empty! Write a search word please!');
         return;
     }
-    // checkTotalHits();
+
     getImages(searchWord, page);
 
 
     loadBtn.style.display = 'block';
+    checkTotalHits(searchWord);
 }
 
 
@@ -56,22 +57,18 @@ function onClickLoadMore() {
 
     getImages(searchWord, page);
 
-    if (page === 14) {
-        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-        loadBtn.style.display = 'none';
-    }
+
 }
 
 
 
-async function checkTotalHits() {
+async function checkTotalHits(searchWord) {
     try {
-        let { totalHits } = await fetchGetImage();
+        let { totalHits } = await fetchGetImage(searchWord);
         if (totalHits > 0) {
             Notiflix.Notify.success(`✅Hooray! We found ${totalHits} images.`);
-        } else {
-            return;
         }
+
     } catch (error) {
         console.log(error);
     }
@@ -88,8 +85,9 @@ async function getImages(searchWord, page) {
             Notiflix.Notify.failure("Sorry, there are no images matching your search query. Please try again.");
             loadBtn.style.display = 'none';
             return
-        } if (totalHits > 0) {
-            Notiflix.Notify.success(`✅Hooray! We found ${totalHits} images.`);
+        } if (hits.length === 0) {
+            Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+            loadBtn.style.display = 'none';
         }
 
     } catch (error) {

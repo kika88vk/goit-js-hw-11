@@ -19,7 +19,7 @@ body {
     background-color: var(--primary-white-color);
     color: var(--primary-text-color);
     font-family: Roboto, sans-serif;
-    font-size: 12px;
+    font-size: 14px;
     margin: 0;
     /* padding: 25px; */
     text-align: center;
@@ -73,6 +73,7 @@ img {
 }
 .info {
     display: flex;
+    padding: 3px 10px;
 }
 
 .info-item {
